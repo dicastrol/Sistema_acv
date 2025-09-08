@@ -1,4 +1,3 @@
-// src/pages/PredecirACV.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
@@ -36,8 +35,13 @@ export default function PredecirACV() {
     );
   }
 
-  // Asegurarte de tener siempre explicacion como array
-  const explicacion = Array.isArray(data.explicacion) ? data.explicacion : [];
+  const contexto = data.contexto || '';
+  const explicacion = Array.isArray(data.factores_influyentes)
+    ? data.factores_influyentes
+    : [];
+  const recomendaciones = Array.isArray(data.recomendaciones)
+    ? data.recomendaciones
+    : [];
 
   const pct = (data.probabilidad_acv * 100).toFixed(1);
 
@@ -49,8 +53,11 @@ export default function PredecirACV() {
       <div className="card p-4 mb-4 text-center">
         <h5>Probabilidad estimada</h5>
         <p className="display-4">
-          {isNaN(pct) ? '0.0' : pct} %
+          {isNaN(pct) ? '0.0' : pct}%
         </p>
+        {contexto && (
+          <p className="mt-3">{contexto}</p>
+        )}
       </div>
 
       <h5>Factores más influyentes</h5>
@@ -65,6 +72,17 @@ export default function PredecirACV() {
               </span>
               <span>peso: {e.peso.toFixed(3)}</span>
             </li>
+          ))}
+        </ul>
+      )}
+
+      <h5>Recomendaciones</h5>
+      {recomendaciones.length === 0 ? (
+        <p className="text-muted">Sin recomendaciones disponibles.</p>
+      ) : (
+        <ul className="list-group mb-4">
+          {recomendaciones.map((r, i) => (
+            <li key={i} className="list-group-item">{r}</li>
           ))}
         </ul>
       )}

@@ -1,4 +1,3 @@
-// src/pages/Pacientes.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Download, Plus, Eye, Edit, Trash } from 'lucide-react';
@@ -8,14 +7,16 @@ export default function Pacientes() {
   const [filtro, setFiltro]       = useState('');
   const [pagina, setPagina]       = useState(1);
   const [porPagina, setPorPagina] = useState(10);
+  const [riesgos, setRiesgos]     = useState({});
+  const [cargando, setCargando]   = useState(true);
+  const [error, setError]         = useState(null);
   const navigate = useNavigate();
 
-  // Recuperar token JWT
   const token = localStorage.getItem('token');
 
-  // 1) Cargar pacientes al montar
   useEffect(() => {
     const fetchPacientes = async () => {
+      setCargando(true);
       try {
         const res = await fetch('/pacientes', {
           headers: { Authorization: `Bearer ${token}` }
@@ -23,14 +24,40 @@ export default function Pacientes() {
         if (!res.ok) throw new Error(`Error ${res.status}`);
         const data = await res.json();
         setPacientes(data);
+        setError(null);
       } catch (err) {
         console.error('Error cargando pacientes:', err);
+        setError('No se pudieron cargar los pacientes');
+      } finally {
+        setCargando(false);
       }
     };
     fetchPacientes();
   }, [token]);
 
-  // 2) Eliminar un paciente
+  useEffect(() => {
+    const fetchRiesgos = async () => {
+      try {
+        const res = await fetch('/prediccion');
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        const data = await res.json();
+        const mapa = {};
+        ['riesgo_alto', 'riesgo_bajo'].forEach(cat => {
+          data[cat].forEach(r => {
+            mapa[r.paciente_id] = {
+              riesgo: cat === 'riesgo_alto' ? 'alto' : 'bajo',
+              prob: r.probabilidad_acv
+            };
+          });
+        });
+        setRiesgos(mapa);
+      } catch (err) {
+        console.error('Error cargando predicciones ACV:', err);
+      }
+    };
+    fetchRiesgos();
+  }, []);
+
   const handleEliminar = async id => {
     if (!window.confirm('¿Eliminar paciente?')) return;
     try {
@@ -46,7 +73,6 @@ export default function Pacientes() {
     }
   };
 
-  // 3) Filtrado y paginación
   const filtrados = filtro.trim() === ''
     ? pacientes
     : pacientes.filter(p => p.id === Number(filtro));
@@ -55,7 +81,6 @@ export default function Pacientes() {
   const inicio       = (pagina - 1) * porPagina;
   const actuales     = filtrados.slice(inicio, inicio + porPagina);
 
-  // 4) Calcular edad
   const calcularEdad = fechaNacimiento => {
     const hoy = new Date(), nac = new Date(fechaNacimiento);
     let edad = hoy.getFullYear() - nac.getFullYear();
@@ -65,6 +90,24 @@ export default function Pacientes() {
     ) edad--;
     return edad;
   };
+
+  if (cargando) {
+    return (
+      <div className="container mt-4 text-center">
+        <span>Cargando pacientes...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-4">
+        <div className="alert alert-danger text-center" role="alert">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-4">
@@ -105,6 +148,7 @@ export default function Pacientes() {
                 <th>Documento</th>
                 <th>Edad</th>
                 <th>Teléfono</th>
+                <th>Riesgo ACV</th>
                 <th style={{ minWidth: '140px' }}>Acciones</th>
               </tr>
             </thead>
@@ -116,6 +160,17 @@ export default function Pacientes() {
                   <td>{p.documento}</td>
                   <td>{calcularEdad(p.fecha_nacimiento)}</td>
                   <td>{p.telefono}</td>
+                  <td>
+                    {riesgos[p.id] ? (
+                      <span className={
+                        riesgos[p.id].riesgo === 'alto' ? 'text-danger' : 'text-success'
+                      }>
+                        {(riesgos[p.id].prob * 100).toFixed(1)}%
+                      </span>
+                    ) : (
+                      <span className="text-muted">-</span>
+                    )}
+                  </td>
                   <td>
                     <button
                       className="btn btn-sm btn-outline-primary me-1"
@@ -143,7 +198,7 @@ export default function Pacientes() {
               ))}
               {filtrados.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="text-center text-muted py-4">
+                  <td colSpan="7" className="text-center text-muted py-4">
                     No se encontraron pacientes
                   </td>
                 </tr>
