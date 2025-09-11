@@ -108,7 +108,7 @@ export default function RegistroHistoria() {
     // Quitar imc y cadenas vacías
     delete raw.imc;
     const payload = Object.fromEntries(
-      Object.entries(raw).filter(([_, v]) => !(typeof v === 'string' && v.trim() === ''))
+      Object.entries(raw).filter(([, v]) => !(typeof v === 'string' && v.trim() === ''))
     );
 
     try {

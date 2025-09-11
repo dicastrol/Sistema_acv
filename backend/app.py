@@ -10,7 +10,7 @@ from backend.routes.historias  import historias_bp
 from backend.routes.citas      import citas_bp
 from backend.routes.prediccion import pred_bp
 from backend.routes.neuroguard import ng_bp
-from flask_caching import Cache
+
 
 
 def create_app():

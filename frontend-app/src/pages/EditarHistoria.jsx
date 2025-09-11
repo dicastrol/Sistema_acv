@@ -107,7 +107,7 @@ export default function EditarHistoria() {
 
     // Quitar propiedades vacías
     const payload = Object.fromEntries(
-      Object.entries(raw).filter(([_, v]) =>
+      Object.entries(raw).filter(([, v]) =>
         !(typeof v === 'string' && v.trim() === '')
       )
     );

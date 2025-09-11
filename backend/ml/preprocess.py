@@ -46,11 +46,11 @@ def run():
         """
 
        # --- Lectura de datos desde SQLite ---
-    raw_conn = ENGINE.raw_connection()
-    try:
+    
+    with ENGINE.connect() as conn:
         df = pd.read_sql_query(
             sql,
-            con=raw_conn,
+            con=conn,
             parse_dates=["fecha_nacimiento", "fecha_consulta"]
         )
     finally:
@@ -63,6 +63,7 @@ def run():
                   .dt.days / 365.25).round(1)
 
     # 4) Orden cronológico
+
     df = df.sort_values(['paciente_id', 'fecha_consulta'])
 
     # 5) Métricas de tendencia por paciente
@@ -78,8 +79,11 @@ def run():
             'std_fc_ultimo_ano': std_fc
         })
 
-    trends = df.groupby('paciente_id').apply(compute_group_features).reset_index()
-
+    trends = (
+        df.groupby('paciente_id')
+          .apply(compute_group_features, include_groups=False)
+          .reset_index()
+    )
     # 6) Última consulta de cada paciente
     last = df.groupby('paciente_id').tail(1).reset_index(drop=True)
 

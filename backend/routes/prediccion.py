@@ -90,7 +90,7 @@ def _calcular_prediccion(paciente_id: int):
         "sedentarismo", "enfermedad_cardiaca_previa", "estres",
         "delta_pa", "consultas_ultimo_ano", "std_fc_ultimo_ano",
     ]
-    X = df[feature_cols].values
+    X = df[feature_cols]
 
     prob = float(_model.predict_proba(X)[0, 1])
     riesgo = "alto" if prob >= RISK_THRESHOLD else "bajo"
@@ -103,7 +103,7 @@ def _calcular_prediccion(paciente_id: int):
     explicacion = []
     if riesgo == "alto" and importancias is not None:
         pares = [
-            (f, X[0][i], importancias[i])
+            (f, X.iloc[0, i], importancias[i])
             for i, f in enumerate(feature_cols)
             if f in ACV_FACTORES
         ]
