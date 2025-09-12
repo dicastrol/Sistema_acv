@@ -12,20 +12,12 @@ export default function NeuroGuard() {
   const API = import.meta.env.VITE_API_BASE_URL || '';
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
-  const [preds, setPreds] = useState(null);
-  const [predError, setPredError] = useState('');
 
   useEffect(() => {
     fetch(`${API}/neuroguard/estadisticas`)
       .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
       .then(json => setStats(json))
       .catch(err => setError(err.toString()));
-  }, [API]);
-  useEffect(() => {
-    fetch(`${API}/prediccion`)
-      .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
-      .then(json => setPreds(json))
-      .catch(err => setPredError(err.toString()));
   }, [API]);
 
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -128,40 +120,6 @@ export default function NeuroGuard() {
         <Tooltip />
         <Bar dataKey="count" fill="#00C49F" />
       </BarChart>
-       <h5 className="mt-5">Pacientes por Probabilidad de ACV</h5>
-      {predError && <div className="alert alert-danger">{predError}</div>}
-      <div className="row">
-        <div className="col-md-6">
-          <h6>Probabilidad Alta</h6>
-          <ul className="list-group">
-            {preds ? (
-              preds.riesgo_alto.map(p => (
-                <li key={p.paciente_id} className="list-group-item d-flex justify-content-between">
-                  <span>{p.nombre}</span>
-                  <span>{(p.probabilidad_acv*100).toFixed(1)}%</span>
-                </li>
-              ))
-            ) : (
-              <li className="list-group-item">Cargando…</li>
-            )}
-          </ul>
-        </div>
-        <div className="col-md-6">
-          <h6>Probabilidad Baja</h6>
-          <ul className="list-group">
-            {preds ? (
-              preds.riesgo_bajo.map(p => (
-                <li key={p.paciente_id} className="list-group-item d-flex justify-content-between">
-                  <span>{p.nombre}</span>
-                  <span>{(p.probabilidad_acv*100).toFixed(1)}%</span>
-                </li>
-              ))
-            ) : (
-              <li className="list-group-item">Cargando…</li>
-            )}
-          </ul>
-        </div>
-      </div>
 
       <Link to="/pacientes" className="btn btn-secondary mt-4">
         ← Volver a Pacientes
