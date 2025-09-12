@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   PieChart, Pie, Cell,
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
+  BarChart, Bar,
 } from 'recharts';
 
 const COLORS = ['#0088FE','#00C49F','#FFBB28','#FF8042','#AA336A','#663399'];
@@ -11,7 +12,6 @@ export default function NeuroGuard() {
   const API = import.meta.env.VITE_API_BASE_URL || '';
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
- 
 
   useEffect(() => {
     fetch(`${API}/neuroguard/estadisticas`)
@@ -20,24 +20,33 @@ export default function NeuroGuard() {
       .catch(err => setError(err.toString()));
   }, [API]);
 
-  
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!stats) return <p>Cargando estadísticas…</p>;
 
   const {
     total_pacientes, total_acv, tasa_acv,
-    incidencia_mensual, prevalencia_factores
+    incidencia_mensual, prevalencia_factores,
+    distribucion_sexo, distribucion_edad
   } = stats;
 
   const dataFactores = Object.entries(prevalencia_factores).map(
     ([factor, pct]) => ({ name: factor, value: pct * 100 })
   );
 
+  const dataSexo = distribucion_sexo.map(({ sexo, count }) => ({
+    name: sexo,
+    value: count,
+  }));
+
+  const dataEdad = distribucion_edad.map(({ rango, count }) => ({
+    rango,
+    count,
+  }));
+
   return (
     <div className="container mt-4">
       <h2>NeuroGuard: Análisis Global de ACV</h2>
 
-      
       <div className="row my-4">
         {[{
            title: 'Pacientes Totales', value: total_pacientes
@@ -83,7 +92,34 @@ export default function NeuroGuard() {
         </Pie>
         <Tooltip formatter={(v)=>v.toFixed(1)+'\u2009%'}/>
       </PieChart>
-       
+
+      <h5 className="mt-5">Distribución por Sexo</h5>
+      <PieChart width={400} height={300}>
+        <Pie
+          data={dataSexo}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          label
+        >
+          {dataSexo.map((_, idx) => (
+            <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+      </PieChart>
+
+      <h5 className="mt-5">Distribución por Edad</h5>
+      <BarChart width={500} height={300} data={dataEdad}
+        margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+        <CartesianGrid stroke="#eee" strokeDasharray="5 5"/>
+        <XAxis dataKey="rango" />
+        <YAxis allowDecimals={false}/>
+        <Tooltip />
+        <Bar dataKey="count" fill="#00C49F" />
+      </BarChart>
 
       <Link to="/pacientes" className="btn btn-secondary mt-4">
         ← Volver a Pacientes

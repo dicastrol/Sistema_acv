@@ -2,12 +2,15 @@
 from flask import Blueprint, jsonify, current_app
 from flask_cors import cross_origin
 from sqlalchemy import text
+
 from backend.database import engine
+from backend.extensions import cache
 
 ng_bp = Blueprint('neuroguard', __name__, url_prefix='/neuroguard')
 
 @ng_bp.route('/estadisticas')
 @cross_origin()
+@cache.cached(timeout=300)
 def stats():
     conn = engine.connect()
     try:
@@ -40,7 +43,7 @@ def stats():
         for col in ["hipertension","diabetes","tabaquismo","sedentarismo",
                     "colesterol_alto","antecedentes_familiares_acv"]:
             cnt = conn.execute(text(f"""
-                SELECT SUM(CASE WHEN {col}=1 THEN 1 ELSE 0 END) 
+                SELECT SUM(CASE WHEN {col}=1 THEN 1 ELSE 0 END)
                 FROM pacientes
             """)).scalar()
             factores[col] = cnt / total_pacientes if total_pacientes else 0
