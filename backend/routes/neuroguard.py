@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, current_app
 from flask_cors import cross_origin
 from sqlalchemy import text
-
+from backend.routes.prediccion import _listado_predicciones
 from backend.database import engine
 from backend.extensions import cache
 
@@ -98,3 +98,12 @@ def stats():
         return jsonify({"error": "No se pudieron calcular estadísticas"}), 500
     finally:
         conn.close()
+@ng_bp.route('/pacientes_riesgo')
+@cross_origin()
+@cache.cached(timeout=300)
+def pacientes_riesgo():
+    try:
+        return jsonify(_listado_predicciones())
+    except Exception:
+        current_app.logger.exception("Error en neuroguard/pacientes_riesgo")
+        return jsonify({"error": "No se pudo obtener el listado"}), 500

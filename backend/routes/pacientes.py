@@ -61,12 +61,4 @@ def actualizar_paciente(id):
     db.commit()
     return jsonify(paciente_schema.dump(paciente)), 200
 
-@pacientes_bp.route("/pacientes/<int:id>", methods=["DELETE"])
-def eliminar_paciente(id):
-    db = next(get_db())
-    paciente = db.query(Paciente).get(id)
-    if not paciente:
-        return jsonify({"error": "Paciente no encontrado"}), 404
-    db.delete(paciente)
-    db.commit()
-    return jsonify({"mensaje": "Paciente eliminado correctamente"}), 200
+

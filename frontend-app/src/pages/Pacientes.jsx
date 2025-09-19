@@ -186,13 +186,7 @@ export default function Pacientes() {
                     >
                       <Edit size={14} />
                     </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleEliminar(p.id)}
-                      title="Eliminar"
-                    >
-                      <Trash size={14} />
-                    </button>
+                    
                   </td>
                 </tr>
               ))}

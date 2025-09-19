@@ -12,12 +12,21 @@ export default function NeuroGuard() {
   const API = import.meta.env.VITE_API_BASE_URL || '';
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
+  const [preds, setPreds] = useState(null);
+  const [predError, setPredError] = useState('');
 
   useEffect(() => {
     fetch(`${API}/neuroguard/estadisticas`)
       .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
       .then(json => setStats(json))
       .catch(err => setError(err.toString()));
+  }, [API]);
+
+  useEffect(() => {
+    fetch(`${API}/neuroguard/pacientes_riesgo`)
+      .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+      .then(json => setPreds(json))
+      .catch(err => setPredError(err.toString()));
   }, [API]);
 
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -118,8 +127,75 @@ export default function NeuroGuard() {
         <XAxis dataKey="rango" />
         <YAxis allowDecimals={false}/>
         <Tooltip />
-        <Bar dataKey="count" fill="#00C49F" />
+      <Bar dataKey="count" fill="#00C49F" />
       </BarChart>
+
+<h5 className="mt-5">Pacientes según probabilidad de ACV</h5>
+{predError && <div className="alert alert-danger">{predError}</div>}
+{!preds && !predError && <p>Cargando riesgos…</p>}
+
+{preds && (
+  <div className="row">
+    <div className="col-md-6">
+      <h6>
+        Mayor riesgo{" "}
+        <span className="badge text-bg-danger ms-2">
+          {preds.riesgo_alto.length}
+        </span>
+      </h6>
+      <ul className="list-group" style={{ maxHeight: 420, overflowY: "auto" }}>
+        {[...preds.riesgo_alto]
+          .sort((a, b) => b.probabilidad_acv - a.probabilidad_acv)
+          .map((p) => (
+            <li
+              key={p.paciente_id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <span className="fw-semibold">{p.nombre}</span>
+                <br />
+                <small className="text-muted">ID: {p.paciente_id}</small>
+              </div>
+              <div className="text-end">
+                <span className="badge text-bg-danger me-2">Alto</span>
+                {(p.probabilidad_acv * 100).toFixed(1)}%
+              </div>
+            </li>
+          ))}
+      </ul>
+    </div>
+
+    <div className="col-md-6">
+      <h6>
+        Menor riesgo{" "}
+        <span className="badge text-bg-success ms-2">
+          {preds.riesgo_bajo.length}
+        </span>
+      </h6>
+      <ul className="list-group" style={{ maxHeight: 420, overflowY: "auto" }}>
+        {[...preds.riesgo_bajo]
+          .sort((a, b) => b.probabilidad_acv - a.probabilidad_acv)
+          .map((p) => (
+            <li
+              key={p.paciente_id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <span className="fw-semibold">{p.nombre}</span>
+                <br />
+                <small className="text-muted">ID: {p.paciente_id}</small>
+              </div>
+              <div className="text-end">
+                <span className="badge text-bg-success me-2">Bajo</span>
+                {(p.probabilidad_acv * 100).toFixed(1)}%
+              </div>
+            </li>
+          ))}
+      </ul>
+    </div>
+  </div>
+)}
+
 
       <Link to="/pacientes" className="btn btn-secondary mt-4">
         ← Volver a Pacientes

@@ -154,36 +154,42 @@ def predecir_acv(paciente_id):
 @cross_origin()
 def listar_predicciones():
     try:
-        conn = ENGINE.raw_connection()
-        try:
-            ids = pd.read_sql_query(
-                "SELECT id, nombre FROM pacientes",
-                con=conn,
-            )
-        finally:
-            conn.close()
-
-        if ids.empty:
-            return jsonify({"riesgo_alto": [], "riesgo_bajo": []})
-
-        resultados = {"riesgo_alto": [], "riesgo_bajo": []}
-        for row in ids.itertuples():
-            try:
-                pred = _calcular_prediccion(row.id)
-            except ValueError:
-                continue
-            entrada = {
-                "paciente_id": int(row.id),
-                "nombre": row.nombre,
-                "probabilidad_acv": pred["probabilidad_acv"],
-            }
-            clave = "riesgo_alto" if pred["riesgo"] == "alto" else "riesgo_bajo"
-            resultados[clave].append(entrada)
-
-        for lista in resultados.values():
-            lista.sort(key=lambda x: x["probabilidad_acv"], reverse=True)
-
-        return jsonify(resultados)
+        return jsonify(_listado_predicciones())
     except Exception:
         current_app.logger.exception("Error en listar_predicciones")
         return jsonify({"error": "No se pudo obtener el listado"}), 500
+
+
+def _listado_predicciones():
+    conn = ENGINE.raw_connection()
+    try:
+        ids = pd.read_sql_query(
+            "SELECT id, nombre FROM pacientes",
+            con=conn,
+        )
+    finally:
+        conn.close()
+
+    if ids.empty:
+        return {"riesgo_alto": [], "riesgo_bajo": []}
+
+    resultados = {"riesgo_alto": [], "riesgo_bajo": []}
+    for row in ids.itertuples():
+        try:
+            pred = _calcular_prediccion(row.id)
+        except ValueError:
+            continue
+        entrada = {
+            "paciente_id": int(row.id),
+            "nombre": row.nombre,
+            "probabilidad_acv": pred["probabilidad_acv"],
+        }
+        clave = "riesgo_alto" if pred["riesgo"] == "alto" else "riesgo_bajo"
+        resultados[clave].append(entrada)
+
+    resultados["riesgo_alto"].sort(
+        key=lambda x: x["probabilidad_acv"], reverse=True
+    )
+    resultados["riesgo_bajo"].sort(key=lambda x: x["probabilidad_acv"])
+
+    return resultados

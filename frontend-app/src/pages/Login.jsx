@@ -41,13 +41,18 @@ export default function Login() {
           <img src="/logo.png" alt="Logo PredictMRS" className="img-fluid" style={{ height: 60 }} />
           <h3 className="mt-3 text-primary">Bienvenido</h3>
         </div>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label">Usuario</label>
+            <label className="form-label" htmlFor="login-usuario">Usuario</label>
             <input
               type="text"
               className="form-control"
+              id="login-usuario"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
               disabled={loading}
@@ -55,10 +60,11 @@ export default function Login() {
             />
           </div>
           <div className="mb-4">
-            <label className="form-label">Contraseña</label>
+            <label className="form-label" htmlFor="login-password">Contraseña</label>
             <input
               type="password"
               className="form-control"
+              id="login-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}

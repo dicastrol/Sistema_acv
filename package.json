@@ -5,5 +5,9 @@
     "react-chartjs-2": "^5.3.0",
     "react-datepicker": "^8.3.0",
     "recharts": "^2.15.3"
+  },
+  "devDependencies": {
+    "@testing-library/cypress": "^10.1.0",
+    "cypress": "^15.2.0"
   }
 }
