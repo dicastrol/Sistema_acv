@@ -1,15 +1,24 @@
 FROM python:3-slim
 
-WORKDIR app/
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir backend
+WORKDIR app/backend
 
-COPY . app/backend
+COPY . .
 
-RUN cd backend
+RUN echo "================================"
+RUN pwd
+RUN echo "================================"
+RUN ls -la
+RUN echo "================================"
+
 RUN pip install -r requirements.txt
+RUN cd ..
+RUN python -m backend.ml.generate_synthetic_data
+RUN python -m backend.init_db
 
-RUN pyton -m backend.ml.generate_synthetic_data
-RUN pyton -m backend.init_db
-
-CMD ["pyton", "-m", "backend.app"]
+CMD ["python", "-m", "backend.app"]

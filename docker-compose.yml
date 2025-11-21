@@ -13,12 +13,14 @@ services:
       - PORT=5000
     networks:
       - app-network
+    x-bake:
+        provenance: false
     volumes:
       - ./backend:/app
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend-app
       dockerfile: Dockerfile
     container_name: app-frontend
     ports:
@@ -29,6 +31,8 @@ services:
       - backend
     networks:
       - app-network
+    x-bake:
+        provenance: false
     volumes:
       - ./frontend:/app
       - /app/node_modules
